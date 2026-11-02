@@ -127,7 +127,8 @@ start.addEventListener('click', async () => {
     if (!configResponse.ok || !tokenResponse.ok) throw new Error(t('fetchFailed'));
     const config = await configResponse.json();
     const token = await tokenResponse.json();
-    const instructions = `${config.instructions}\n\nConversation language: ${t('respond')}`;
+    const staffName = voice.value.charAt(0).toUpperCase() + voice.value.slice(1);
+    const instructions = `${config.instructions}\n\nConversation language: ${t('respond')}\nYour staff name: ${staffName}`;
     const agent = new RealtimeAgent({ name: 'RealtimeSkills', instructions, tools: [runSkill], voice: voice.value });
     session = new RealtimeSession(agent, { model: config.model });
     session.on('transport_event', (event) => {
@@ -139,6 +140,8 @@ start.addEventListener('click', async () => {
     });
     startMeter(config);
     setStatus('connected');
+    // Let the agent speak first so it can greet the customer.
+    session.transport.sendEvent({ type: 'response.create' });
     stop.disabled = false;
   } catch (error) {
     session?.close(); session = null;
